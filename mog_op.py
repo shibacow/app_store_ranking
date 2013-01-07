@@ -23,6 +23,8 @@ class MongoOp(object):
     def save(self,col,dt):
         if dt:
             self.db[col].save(dt)
+    def find_all(self,col,dict1):
+        return self.db[col].find(dict1)
 
 def main():
     pass

@@ -4,10 +4,10 @@ import requests
 import simplejson
 #from xml.dom import minidom
 import re
-#from datetime import datetime
+from datetime import datetime
 import logging
 import os
-#import time
+import time
 import selector_info
 import mog_op
 
@@ -22,8 +22,8 @@ logging.basicConfig(level=logging.DEBUG,
 feedinfos='http://itunes.apple.com/WebObjects/MZStoreServices.woa/wa/RSS/wsAvailableFeeds?cc=%s'
 
 def getCountry():
-    #return [k for k in selector_info.country_list][:20]
-    return ['JP','US','TW','CH']
+    return [k for k in selector_info.country_list]
+    #return ['JP','US','TW','CH']
 def getMediaType():
     pass
 def save_raw_data(c,fd,mp):
@@ -48,9 +48,11 @@ class FeedInfo(object):
             #print tl['display'],tl['name'],tl['urlPrefix']
             self.types.append(dict(name=tl['name'],urlPrefix=tl['urlPrefix'],display=tl['display']))
     def to_json(self):
-        return dict(country=self.country,mediatype=self.mediatype,genres=self.genreids,types=self.types,mediadisplay=self.mediadisplay)
+        return dict(country=self.country,mediatype=self.mediatype,genres=self.genreids,\
+                        types=self.types,mediadisplay=self.mediadisplay,created_at=self.created_at)
     def __init__(self,c,fdlist):
         self.country=c
+        self.created_at=datetime.now()
         self.mediatype=fdlist['name']
         self.mediadisplay=fdlist['display']
         self.__genres(fdlist)
@@ -70,7 +72,7 @@ def getFeedInfo(r,c,mp):
                 finfo[k]=kv[k]
             mp.save(mp.FEED_INFO,finfo)
         else:
-            mp.save(mp.FEED_INFO,kv)
+            mp.save(mp.FEED_INFO,fi.to_json())
             
             
 
@@ -80,5 +82,6 @@ def main():
         url=feedinfos % c
         r=requests.get(url)
         getFeedInfo(r,c,mp)
-        
+        time.sleep(0.5)
+
 if __name__=='__main__':main()
