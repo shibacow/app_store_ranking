@@ -64,7 +64,10 @@ def is_already_exists_prev_data(mp,country,mediatype,t):
 def main():
     mp=mog_op.MongoOp('localhost')
     count=0
+    cattypes=[]
     for i,(country,mediatype,t) in enumerate(get_params(mp)):
+        cattypes.append((country,mediatype,t))
+    for i,(country,mediatype,t) in enumerate(cattypes):
         u=t['urlPrefix']
         if not re.search('WebObject',u):
             url=u+'limit=300/json'
