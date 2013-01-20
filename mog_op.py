@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 from pymongo import Connection
-#from pymongo.objectid import ObjectId
 import pymongo
 import re
+from bson.objectid import ObjectId
 
 class MongoOp(object):
     DBNAME='app_store'
@@ -11,6 +11,7 @@ class MongoOp(object):
     RANKING_INFO='ranking_info'
     FEED_RAW_DATA='feed_raw_data'
     RANKING_RAW_DATA='ranking_raw_data'
+    RANKING_META_DATA='ranking_meta_data'
     def __init__(self,host):
         self.con = Connection(host, 27017)
         self.db=self.con[self.DBNAME]
@@ -18,8 +19,12 @@ class MongoOp(object):
         self.rinfo=self.db[self.RANKING_INFO]
         self.frdata=self.db[self.FEED_RAW_DATA]
         self.rrdata=self.db[self.RANKING_RAW_DATA]
+        self.rmdata=self.db[self.RANKING_META_DATA]
     def is_exists(self,col,dicts):
         return self.db[col].find_one(dicts)
+    def group(self,col,dicts):
+        return self.db[col].group(**dicts)
+
     def save(self,col,dt):
         if dt:
             self.db[col].save(dt)
