@@ -10,6 +10,7 @@ import os
 import selector_info
 import mog_op
 import copy
+import pprint
 
 logdir=os.path.abspath(os.path.dirname(__file__))
 logfile='%s/result.log' % logdir
@@ -28,9 +29,16 @@ class SaveFeed(object):
         self.fd=fd
         self.parse_ranking_info(mp,fd)
     def save_app(self,aid,elm):
-        elm['created_at']=datetime.now()
-        elm['aid']=aid
-        self.mp.save(self.mp.APP_INFO_DATA,elm)
+        e2=self.mp.is_exists(self.mp.APP_INFO_DATA,{"aid":aid})
+        if e2:
+            e2=elm
+            e2['created_at']=datetime.now()
+            e2['aid']=aid
+            self.mp.save(self.mp.APP_INFO_DATA,e2)
+        else:
+            elm['created_at']=datetime.now()
+            elm['aid']=aid
+            self.mp.save(self.mp.APP_INFO_DATA,elm)
     def save_raw_data(self,mp,fd):
         fd['created_at']=datetime.now()
         mp.save(mp.RANKING_RAW_DATA,fd)
@@ -44,11 +52,20 @@ class SaveFeed(object):
         link_id=feed['id']['label']
         fd['link_id']=link_id
         if not 'entry' in feed:return
-        for elm in feed['entry']:
+        if isinstance(feed['entry'],dict):
+            print 'dict'
+            elm=feed['entry']
             e2=copy.deepcopy(elm)
             self.get_aid(e2)
             if 'summary' in elm:
                 del elm['summary']
+        elif isinstance(feed['entry'],list):
+            print 'list'
+            for elm in feed['entry']:
+                e2=copy.deepcopy(elm)
+                self.get_aid(e2)
+                if 'summary' in elm:
+                    del elm['summary']
         self.save_raw_data(mp,fd)
 
 def get_info(url):
