@@ -9,6 +9,7 @@ import os
 #import time
 import selector_info
 import mog_op
+import pprint
 
 logdir=os.path.abspath(os.path.dirname(__file__))
 logfile='%s/result.log' % logdir
@@ -37,8 +38,9 @@ def parse_ranking_info(fd,rdict):
         #print att
         aid=att['attributes']['im:id']
         aid=int(aid)
-        rdict.setdefault(aid,0)
-        rdict[aid]+=1
+        if not 'summary' in elm:
+            rdict.setdefault(aid,0)
+            rdict[aid]+=1
         
         #for k in elm:
         #    if k=='summary':continue

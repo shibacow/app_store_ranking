@@ -9,6 +9,9 @@ import os
 #import time
 import selector_info
 import mog_op
+import pprint
+import hashlib
+import pymongo
 
 logdir=os.path.abspath(os.path.dirname(__file__))
 logfile='%s/result.log' % logdir
@@ -18,39 +21,37 @@ logging.basicConfig(level=logging.DEBUG,
                     filename=logfile,
                     filemode='a')
 
-ranking_info='https://itunes.apple.com/jp/rss/topfreeapplications/limit=300/json'
-ranking_info='https://itunes.apple.com/jp/rss/topfreeapplications/limit=10/json'
-
 def save_raw_data(mp,fd):
     fd['created_at']=datetime.now()
     mp.save(mp.RANKING_RAW_DATA,fd)
-def parse_ranking_info(fd,rdict):
+
+def save_update_raw_data(mp,fd):
+    fd['updated_at']=datetime.now()
+    mp.save(mp.RANKING_RAW_DATA,fd)
+
+class AppInfo(object):
+    def save_app(self,aid,elm):
+        if not self.mp.is_exists(self.mp.APP_INFO_DATA,{"aid":aid}):
+            elm['created_at']=datetime.now()
+            elm['aid']=aid
+            self.mp.save(self.mp.APP_INFO_DATA,elm)
+    def __init__(self,elm,mp):
+        att=elm['id']
+        aid=att['attributes']['im:id']
+        aid=int(aid)
+        self.mp=mp
+        self.save_app(aid,elm)
+
+def parse_ranking_info(fd,rdict,mp):
     feed=fd['feed']
     link_id=feed['id']['label']
     fd['link_id']=link_id
-    #save_raw_data(mp,fd)
     if not 'entry' in feed:return 
     for elm in feed['entry']:
-        #print '='*60
         if not 'id' in elm:return
-        att=elm['id']
-        #print att
-        aid=att['attributes']['im:id']
-        aid=int(aid)
-        rdict.setdefault(aid,0)
-        rdict[aid]+=1
-        
-        #for k in elm:
-        #    if k=='summary':continue
-        #    print k,type(elm[k]),elm[k]
-        #summary=elm['summary']['label']
-    #for k in feed:
-    #    if k=='entry':continue
-    #    print k,type(feed[k]),feed[k]
-
-def get_info(url):
-    r=requests.get(url)
-    return simplejson.loads(r.text)
+        app=AppInfo(elm,mp)
+        if 'summary' in elm:
+            del elm['summary']
 
 def get_params(mp):
     for f in mp.find_all(mp.FEED_INFO,{}):
@@ -58,34 +59,21 @@ def get_params(mp):
         m=f['mediatype']
         for t in f['types']:
             yield (c,m,t)
-        
-def parse_date(fd,date_dict):
-    dt=fd['created_at']
-    dt=dt.strftime('%Y-%m-%d_%H')
-    date_dict.setdefault(dt,0)
-    date_dict[dt]+=1
 
-def count_sz(mp):
+def move_app_info(mp):
     rdict={}
     date_dict={}
     for i,(country,mediatype,t) in enumerate(get_params(mp)):
-        fd=mp.find_all(mp.RANKING_RAW_DATA,dict(country=country,mediatype=mediatype,fieldtype=t['name']))
+        fd=mp.find_sort_all(mp.RANKING_RAW_DATA,dict(updated_at={"$exists":False},country=country,mediatype=mediatype,fieldtype=t['name']),[('created_at',pymongo.DESCENDING)])
         if fd:
             print i,country,mediatype,t
             if fd.count()>0:
                 for k in fd:
-                    parse_date(k,date_dict)
-                    parse_ranking_info(k,rdict)
-    for (a,b) in sorted(rdict.items(),key=lambda x:x[1],reverse=True)[:100]:
-        print a,b
-    sz=len(rdict)
-    sz2=sum([t[1] for t in rdict.items()])
-    print sz,sz2,(sz2*1.0)/sz
-    for (a,b) in sorted(date_dict.items(),key=lambda x:x[0]):
-        print a,b
-
+                    print k['created_at']
+                    parse_ranking_info(k,rdict,mp)
+                    save_update_raw_data(mp,k)
 def main():
     mp=mog_op.MongoOp('localhost')
-    count_sz(mp)
+    move_app_info(mp)
 
 if __name__=='__main__':main()

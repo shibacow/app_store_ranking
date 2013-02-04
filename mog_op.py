@@ -12,6 +12,7 @@ class MongoOp(object):
     FEED_RAW_DATA='feed_raw_data'
     RANKING_RAW_DATA='ranking_raw_data'
     RANKING_META_DATA='ranking_meta_data'
+    APP_INFO_DATA='app_info_data'
     def __init__(self,host):
         self.con = Connection(host, 27017)
         self.db=self.con[self.DBNAME]
@@ -20,6 +21,7 @@ class MongoOp(object):
         self.frdata=self.db[self.FEED_RAW_DATA]
         self.rrdata=self.db[self.RANKING_RAW_DATA]
         self.rmdata=self.db[self.RANKING_META_DATA]
+        self.appdata=self.db[self.APP_INFO_DATA]
     def is_exists(self,col,dicts):
         return self.db[col].find_one(dicts)
     def group(self,col,dicts):
@@ -28,6 +30,9 @@ class MongoOp(object):
     def save(self,col,dt):
         if dt:
             self.db[col].save(dt)
+    def find_sort_all(self,col,dict1,slist):
+        return self.db[col].find(dict1).sort(slist)
+
     def find_all(self,col,dict1):
         return self.db[col].find(dict1)
 

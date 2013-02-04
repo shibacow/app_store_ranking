@@ -9,6 +9,7 @@ import os
 #import time
 import selector_info
 import mog_op
+import copy
 
 logdir=os.path.abspath(os.path.dirname(__file__))
 logfile='%s/result.log' % logdir
@@ -21,23 +22,34 @@ logging.basicConfig(level=logging.DEBUG,
 ranking_info='https://itunes.apple.com/jp/rss/topfreeapplications/limit=300/json'
 ranking_info='https://itunes.apple.com/jp/rss/topfreeapplications/limit=10/json'
 
-def save_raw_data(mp,fd):
-    fd['created_at']=datetime.now()
-    mp.save(mp.RANKING_RAW_DATA,fd)
-def parse_ranking_info(fd):
-    feed=fd['feed']
-    link_id=feed['id']['label']
-    fd['link_id']=link_id
-    #save_raw_data(mp,fd)
-    for elm in feed['entry']:
-        print '='*60
-        for k in elm:
-            if k=='summary':continue
-            print k,type(elm[k]),elm[k]
-        summary=elm['summary']['label']
-    #for k in feed:
-    #    if k=='entry':continue
-    #    print k,type(feed[k]),feed[k]
+class SaveFeed(object):
+    def __init__(self,mp,fd):
+        self.mp=mp
+        self.fd=fd
+        self.parse_ranking_info(mp,fd)
+    def save_app(self,aid,elm):
+        elm['created_at']=datetime.now()
+        elm['aid']=aid
+        self.mp.save(self.mp.APP_INFO_DATA,elm)
+    def save_raw_data(self,mp,fd):
+        fd['created_at']=datetime.now()
+        mp.save(mp.RANKING_RAW_DATA,fd)
+    def get_aid(self,elm):
+        att=elm['id']
+        aid=att['attributes']['im:id']
+        aid=int(aid)
+        self.save_app(aid,elm)
+    def parse_ranking_info(self,mp,fd):
+        feed=fd['feed']
+        link_id=feed['id']['label']
+        fd['link_id']=link_id
+        if not 'entry' in feed:return
+        for elm in feed['entry']:
+            e2=copy.deepcopy(elm)
+            self.get_aid(e2)
+            if 'summary' in elm:
+                del elm['summary']
+        self.save_raw_data(mp,fd)
 
 def get_info(url):
     r=requests.get(url)
@@ -82,6 +94,6 @@ def main():
             fd['mediatype']=mediatype
             fd['fieldtype']=t['name']
             fd['fieldinfo']=t
-            save_raw_data(mp,fd)
-    
+            #parse_ranking_info(mp,fd)
+            sv=SaveFeed(mp,fd)
 if __name__=='__main__':main()
