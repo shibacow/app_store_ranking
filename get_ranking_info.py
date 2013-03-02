@@ -29,16 +29,10 @@ class SaveFeed(object):
         self.fd=fd
         self.parse_ranking_info(mp,fd)
     def save_app(self,aid,elm):
-        e2=self.mp.is_exists(self.mp.APP_INFO_DATA,{"aid":aid})
-        if e2:
-            e2=elm
-            e2['created_at']=datetime.now()
-            e2['aid']=aid
-            self.mp.save(self.mp.APP_INFO_DATA,e2)
-        else:
-            elm['created_at']=datetime.now()
-            elm['aid']=aid
-            self.mp.save(self.mp.APP_INFO_DATA,elm)
+        self.mp.remove(self.mp.APP_INFO_DATA,aid)
+        elm['created_at']=datetime.now()
+        elm['aid']=aid
+        self.mp.save(self.mp.APP_INFO_DATA,elm)
     def save_raw_data(self,mp,fd):
         fd['created_at']=datetime.now()
         mp.save(mp.RANKING_RAW_DATA,fd)
@@ -46,6 +40,9 @@ class SaveFeed(object):
         att=elm['id']
         aid=att['attributes']['im:id']
         aid=int(aid)
+        msg="upsert aid=%d" % aid
+        print msg
+        logging.info(msg)
         self.save_app(aid,elm)
     def parse_ranking_info(self,mp,fd):
         feed=fd['feed']
@@ -53,14 +50,12 @@ class SaveFeed(object):
         fd['link_id']=link_id
         if not 'entry' in feed:return
         if isinstance(feed['entry'],dict):
-            print 'dict'
             elm=feed['entry']
             e2=copy.deepcopy(elm)
             self.get_aid(e2)
             if 'summary' in elm:
                 del elm['summary']
         elif isinstance(feed['entry'],list):
-            print 'list'
             for elm in feed['entry']:
                 e2=copy.deepcopy(elm)
                 self.get_aid(e2)
@@ -70,8 +65,18 @@ class SaveFeed(object):
 
 def get_info(url):
     r=requests.get(url)
-    return simplejson.loads(r.text)
-
+    kk=None
+    try:
+        kk=simplejson.loads(r.text)
+    except simplejson.decoder.JSONDecodeError,err:
+        print err
+        logging.error(err)
+        return None
+    except requests.exceptions.ConnectionError,err:
+        print err
+        logging.error(err)
+        return None
+    return kk
 def get_params(mp):
     for f in mp.find_all(mp.FEED_INFO,{}):
         c=f['country']
@@ -107,6 +112,7 @@ def main():
                 continue
             logging.info(msg)
             fd=get_info(url)    
+            if not fd:continue
             fd['country']=country
             fd['mediatype']=mediatype
             fd['fieldtype']=t['name']

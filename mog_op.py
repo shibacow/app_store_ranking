@@ -2,8 +2,16 @@
 # -*- coding:utf-8 -*-
 from pymongo import Connection
 import pymongo
-import re
+import re,os,logging
 from bson.objectid import ObjectId
+
+logdir=os.path.abspath(os.path.dirname(__file__))
+logfile='%s/result.log' % logdir
+
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s %(levelname)s %(message)s',
+                    filename=logfile,
+                    filemode='a')
 
 class MongoOp(object):
     DBNAME='app_store'
@@ -26,7 +34,14 @@ class MongoOp(object):
         return self.db[col].find_one(dicts)
     def group(self,col,dicts):
         return self.db[col].group(**dicts)
-
+    def remove(self,col,aid):
+        msg='remove aid=%d' % aid
+        print msg
+        logging.info(msg)
+        r=self.db[col].remove({"aid":aid},w=1)
+        msg='remvoed aid=%d \t result=%s' % (aid,r)
+        print msg
+        logging.info(msg)
     def save(self,col,dt):
         if dt:
             self.db[col].save(dt)
