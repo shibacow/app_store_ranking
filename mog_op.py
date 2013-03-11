@@ -36,11 +36,11 @@ class MongoOp(object):
         return self.db[col].group(**dicts)
     def remove(self,col,aid):
         msg='remove aid=%d' % aid
-        print msg
+        #print msg
         logging.info(msg)
         r=self.db[col].remove({"aid":aid},w=1)
         msg='remvoed aid=%d \t result=%s' % (aid,r)
-        print msg
+        #print msg
         logging.info(msg)
     def save(self,col,dt):
         if dt:
