@@ -19,14 +19,10 @@ logging.basicConfig(level=logging.DEBUG,
                     filemode='a')
 
 def get_ranking(mp):
-    #aa=mp.rrdata.group(key={"fieldtype":1,"mediatype":1,"country":1},condition={},initial={"csum":0},\
-    #                       reduce="function(obj,prev){prev.csum=prev.csum+1}")
-    #for a in aa:
-    #    pprint.pprint(a)
-    for a in mp.rrdata.find().sort([("created_at",-1)]).limit(40):
+    def show_ins(a):
         feed=a['feed']
         del a['feed']
-
+        
         entry=feed['entry']
         del feed['entry']
         print '='*40
@@ -49,6 +45,13 @@ def get_ranking(mp):
             print '='*50
             pprint.pprint(entry)
 
+    #aa=mp.rrdata.group(key={"fieldtype":1,"mediatype":1,"country":1},condition={},initial={"csum":0},\
+    #                       reduce="function(obj,prev){prev.csum=prev.csum+1}")
+    #for a in aa:
+    #    pprint.pprint(a)
+    for a in mp.rrdata.find().sort([("created_at",-1)]).limit(1):
+        for k in a:
+            print k
 def get_app_info(mp):
     for a in mp.appdata.find().sort([("aid",-1)]).limit(40):
         print '*'*30
@@ -58,6 +61,6 @@ def get_app_info(mp):
 def main():
     mp=mog_op.MongoOp('localhost')
     #get_ranking(mp)
-    get_app_info(mp)
+    #get_app_info(mp)
 
 if __name__=='__main__':main()

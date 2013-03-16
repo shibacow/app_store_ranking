@@ -37,20 +37,24 @@ class MongoOp(object):
     def remove(self,col,aid):
         msg='remove aid=%d' % aid
         #print msg
-        logging.info(msg)
+        #logging.info(msg)
         r=self.db[col].remove({"aid":aid},w=1)
         msg='remvoed aid=%d \t result=%s' % (aid,r)
         #print msg
-        logging.info(msg)
+        #logging.info(msg)
     def save(self,col,dt):
         if dt:
             self.db[col].save(dt)
+    def update(self,col,cond,value):
+        self.db[col].update(cond,value)
     def find_sort_all(self,col,dict1,slist):
         return self.db[col].find(dict1).sort(slist)
 
-    def find_all(self,col,dict1):
-        return self.db[col].find(dict1)
-
+    def find_all(self,col,dict1,limit=-1):
+        if limit==-1:
+            return self.db[col].find(dict1)
+        else:
+            return self.db[col].find(dict1).limit(limit)
 def main():
     pass
 

@@ -60,7 +60,7 @@ class FeedInfo(object):
 
 def getFeedInfo(r,c,mp):
     print c
-    tt=re.sub('^availableFeeds=','',r.text)
+    tt=re.sub('^availableFeeds=','',r.content)
     fd=simplejson.loads(tt)
     save_raw_data(c,fd,mp)
     for f in fd['list']:

@@ -11,6 +11,7 @@ import selector_info
 import mog_op
 import copy
 import pprint
+import grequests
 
 logdir=os.path.abspath(os.path.dirname(__file__))
 logfile='%s/result.log' % logdir
@@ -40,9 +41,9 @@ class SaveFeed(object):
         att=elm['id']
         aid=att['attributes']['im:id']
         aid=int(aid)
-        msg="upsert aid=%d" % aid
-        print msg
-        logging.info(msg)
+        #msg="upsert aid=%d" % aid
+        #print msg
+        #logging.info(msg)
         self.save_app(aid,elm)
     def parse_ranking_info(self,mp,fd):
         feed=fd['feed']
@@ -63,11 +64,10 @@ class SaveFeed(object):
                     del elm['summary']
         self.save_raw_data(mp,fd)
 
-def get_info(url):
-    r=requests.get(url)
+def get_info(r):
     kk=None
     try:
-        kk=simplejson.loads(r.text)
+        kk=simplejson.loads(r.content)
     except simplejson.decoder.JSONDecodeError,err:
         print err
         logging.error(err)
@@ -86,7 +86,7 @@ def get_params(mp):
         
 def is_already_exists_prev_data(mp,country,mediatype,t):
     c=datetime.now()
-    prev=c-timedelta(hours=4)
+    prev=c-timedelta(hours=20)
     cond={"country":country,"mediatype":mediatype,"fieldtype":t['name'],"created_at":{"$gte":prev,"$lt":c}}
     #print cond
     r=mp.find_all(mp.RANKING_RAW_DATA,cond)
@@ -94,13 +94,43 @@ def is_already_exists_prev_data(mp,country,mediatype,t):
         return True
     else:
         return False
+class URL_DICT(object):
+    def __init__(self,url,country,mediatype,fieldtype,fieldinfo,msg):
+        self.url=url
+        self.country=country
+        self.mediatype=mediatype
+        self.fieldtype=fieldtype
+        self.fieldinfo=fieldinfo
+        self.msg=msg
     
+
+def sweap(mp,urldict,urllist):
+    rs=(grequests.get(u) for u in urllist)
+    for r in grequests.imap(rs):
+        fd=get_info(r)
+        if not fd:continue
+        finfo=urldict.get(r.url,None)
+        if not finfo:continue
+        print finfo.msg
+        logging.info(finfo.msg)
+        fd['country']=finfo.country
+        fd['mediatype']=finfo.mediatype
+        fd['fieldtype']=finfo.fieldtype
+        fd['fieldinfo']=finfo.fieldinfo
+        fd['is_meta_stored']=False
+        sv=SaveFeed(mp,fd)
+    msg='end sweap dictsize=%d listsize=%d' % (len(urldict),len(urllist))
+    print msg
+    logging.info(msg)
+
 def main():
     mp=mog_op.MongoOp('localhost')
     count=0
     cattypes=[]
     for i,(country,mediatype,t) in enumerate(get_params(mp)):
         cattypes.append((country,mediatype,t))
+    urldict={}
+    urllist=[]
     for i,(country,mediatype,t) in enumerate(cattypes):
         u=t['urlPrefix']
         if not re.search('WebObject',u):
@@ -110,13 +140,12 @@ def main():
             print msg
             if is_already_exists_prev_data(mp,country,mediatype,t):
                 continue
-            logging.info(msg)
-            fd=get_info(url)    
-            if not fd:continue
-            fd['country']=country
-            fd['mediatype']=mediatype
-            fd['fieldtype']=t['name']
-            fd['fieldinfo']=t
-            #parse_ranking_info(mp,fd)
-            sv=SaveFeed(mp,fd)
+            urldict[url]=URL_DICT(url,country,mediatype,t['name'],t,msg)
+            urllist.append(url)
+            if len(urllist)>50:
+                sweap(mp,urldict,urllist)
+                urllist=[]
+    sweap(mp,urldict,urllist)
+    urllist=[]
+            
 if __name__=='__main__':main()

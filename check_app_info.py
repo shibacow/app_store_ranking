@@ -75,19 +75,49 @@ def count_sz(mp):
     print sz,sz2,(sz2*1.0)/sz
 
 def grouping(mp):
+    IS_META_STORED='is_meta_stored'
     for i,(country,mediatype,t) in enumerate(get_params(mp)):
-        fd=mp.find_all(mp.RANKING_RAW_DATA,dict(country=country,mediatype=mediatype,fieldtype=t['name']))
+        cond=dict(country=country,mediatype=mediatype,fieldtype=t['name'])
+        cond['$or']=[{IS_META_STORED:False},{IS_META_STORED:{"$exists":False}}]
+        fd=mp.find_all(mp.RANKING_RAW_DATA,cond)
+        print i
         if fd:
             if fd.count()>0:
                 for k in fd:
-                    print country,mediatype,t['name'],k['created_at'],k['_id']
+                    print i,country,mediatype,t['name'],k['created_at'],k['_id']
                     cd=dict(country=country,mediatype=mediatype,\
                                 fieldtype=t['name'],fetch_date=k['created_at'],\
                                 ranking_raw_id=k['_id'])
                     mp.save(mp.RANKING_META_DATA,cd)
+                    #k[IS_META_STORED]=True
+                    #mp.save(mp.RANKING_RAW_DATA,k)
+                    cond={"_id":k['_id']}
+                    value={"$set":{IS_META_STORED:True}}
+                    mp.update(mp.RANKING_RAW_DATA,cond,value)
+def copy2metaStore(mp):
+    IS_META_STORED='is_meta_stored'
+    #cond=dict(country=country,mediatype=mediatype,fieldtype=t['name'])
+    cond={}
+    #cond['$or']=[{IS_META_STORED:False},{IS_META_STORED:{"$exists":False}}]
+    cond[IS_META_STORED]=True
+    fd=mp.find_all(mp.RANKING_RAW_DATA,cond,5)
+    for i,a in enumerate(fd):
+        #print a['fieldinfo']
+        for k in a:
+            print k
+            if k!='feed':
+                print k,a[k]
+        #f=a['feed']
+        #for p in f:
+        #    print p
+        #for k in a:
+        #    
+        #print i,a['country'],a['mediatype'],a['fieldtype'],a['created_at'],a['_id']
+        
 
 def main():
     mp=mog_op.MongoOp('localhost')
-    grouping(mp)
+    ##grouping(mp)
+    copy2metaStore(mp)
 
 if __name__=='__main__':main()
