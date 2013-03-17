@@ -42,6 +42,13 @@ class MongoOp(object):
         msg='remvoed aid=%d \t result=%s' % (aid,r)
         #print msg
         #logging.info(msg)
+    def remove_id(self,col,mid):
+        msg='remove col=%s mid=%s' % (col,mid)
+        r=self.db[col].remove({"_id":ObjectId(mid)},w=1)
+        msg='remvoed col=%s mid=%s\tresult=%s' % (col,mid,r)
+        print msg
+        logging.info(msg)
+        
     def save(self,col,dt):
         if dt:
             self.db[col].save(dt)

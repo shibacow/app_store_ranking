@@ -117,7 +117,7 @@ def copy2metaStore(mp):
 
 def main():
     mp=mog_op.MongoOp('localhost')
-    ##grouping(mp)
-    copy2metaStore(mp)
+    grouping(mp)
+    ##copy2metaStore(mp)
 
 if __name__=='__main__':main()

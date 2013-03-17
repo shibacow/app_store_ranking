@@ -157,6 +157,15 @@ country_list={
 "ZA":u"南アフリカ",
 "JP":u"日本",
 "US":u"アメリカ合衆国"}
+
+G8=(
+    u"FR",u"US",u"GB",u"DE",u"JP",u"IT",u"CA",u"RU"
+)
+G20=(
+    u"JP",u"KR",u"CN",u"IN",u"ID",u"SA",u"FR",u"DE",
+    u"IT",u"GB",u"CA",u"MX",u"US",u"AR",u"BR",u"RU",
+    u"TR",u"ZA",u"AU"
+)
 media_type={
 "Mobile Software Applications":u"iOS Apps",
 "iTunes U":u"iTunes U",
