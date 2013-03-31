@@ -50,8 +50,9 @@ def get_ranking(mp):
     #for a in aa:
     #    pprint.pprint(a)
     for a in mp.rrdata.find().sort([("created_at",-1)]).limit(1):
-        for k in a:
-            print k
+        show_ins(a)
+    #    for k in a:
+    #        print k
 def get_app_info(mp):
     for a in mp.appdata.find().sort([("aid",-1)]).limit(40):
         print '*'*30
@@ -60,7 +61,7 @@ def get_app_info(mp):
 
 def main():
     mp=mog_op.MongoOp('localhost')
-    #get_ranking(mp)
+    get_ranking(mp)
     #get_app_info(mp)
 
 if __name__=='__main__':main()

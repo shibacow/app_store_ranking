@@ -166,6 +166,7 @@ G20=(
     u"IT",u"GB",u"CA",u"MX",u"US",u"AR",u"BR",u"RU",
     u"TR",u"ZA",u"AU"
 )
+TOP50=(u"US",u"CN",u"JP",u"DE",u"FR",u"BR",u"GB",u"IT",u"IN",u"RU",u"CA",u"AU",u"ES",u"MX",u"KR",u"ID",u"NZ",u"TR",u"CH",u"SA",u"SE",u"BE",u"PL",u"NO",u"AR",u"AT",u"ZA",u"TH",u"AE",u"CO",u"DK",u"VE",u"GR",u"MY",u"FI",u"SG",u"CL",u"NG",u"HK",u"IL",u"PT",u"EG",u"PH",u"TW",u"IE",u"CZ",u"PK",u"DZ",u"RO",u"KZ",u"PE")
 media_type={
 "Mobile Software Applications":u"iOS Apps",
 "iTunes U":u"iTunes U",
