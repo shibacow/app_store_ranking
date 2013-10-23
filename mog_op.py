@@ -21,6 +21,7 @@ class MongoOp(object):
     RANKING_RAW_DATA='ranking_raw_data'
     RANKING_META_DATA='ranking_meta_data'
     APP_INFO_DATA='app_info_data'
+    CACHE_DATA='cache_data'
     def __init__(self,host):
         self.con = Connection(host, 27017)
         self.db=self.con[self.DBNAME]
@@ -30,6 +31,7 @@ class MongoOp(object):
         self.rrdata=self.db[self.RANKING_RAW_DATA]
         self.rmdata=self.db[self.RANKING_META_DATA]
         self.appdata=self.db[self.APP_INFO_DATA]
+        self.cdata=self.db[self.CACHE_DATA]
     def is_exists(self,col,dicts):
         return self.db[col].find_one(dicts)
     def group(self,col,dicts):
@@ -46,7 +48,7 @@ class MongoOp(object):
         msg='remove col=%s mid=%s' % (col,mid)
         r=self.db[col].remove({"_id":ObjectId(mid)},w=1)
         msg='remvoed col=%s mid=%s\tresult=%s' % (col,mid,r)
-        print msg
+        #print msg
         logging.info(msg)
         
     def save(self,col,dt):
@@ -59,9 +61,9 @@ class MongoOp(object):
 
     def find_all(self,col,dict1,limit=-1):
         if limit==-1:
-            return self.db[col].find(dict1)
+            return self.db[col].find(dict1,timeout=False)
         else:
-            return self.db[col].find(dict1).limit(limit)
+            return self.db[col].find(dict1,timeout=False).limit(limit)
 def main():
     pass
 
