@@ -21,7 +21,7 @@ logging.basicConfig(level=logging.DEBUG,
                     filename=logfile,
                     filemode='a')
 
-ranking_info='https://itunes.apple.com/jp/rss/topfreeapplications/limit=300/json'
+ranking_info='https://itunes.apple.com/jp/rss/topfreeapplications/limit=100/json'
 ranking_info='https://itunes.apple.com/jp/rss/topfreeapplications/limit=10/json'
 
 class SaveFeed(object):
@@ -134,7 +134,7 @@ def main():
     for i,(country,mediatype,t) in enumerate(cattypes):
         u=t['urlPrefix']
         if not re.search('WebObject',u):
-            url=u+'limit=300/json'
+            url=u+'limit=200/json'
             count+=1
             msg='count=%d country=%s mediatype=%s fieldtype=%s url=%s' % (count,country,mediatype,t['name'],url)
             print msg

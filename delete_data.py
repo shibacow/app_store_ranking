@@ -12,7 +12,7 @@ def raw_data(mp,a):
 def delete_a(mp):
     dkt={}
     cntt=0
-    for i,a in enumerate(mp.find_all(mp.RANKING_META_DATA,{},100000)):
+    for i,a in enumerate(mp.find_all(mp.RANKING_META_DATA,{})):
         dt=parse_date(a)
         wd=dt.weekday()
         dkt.setdefault(wd,0)
